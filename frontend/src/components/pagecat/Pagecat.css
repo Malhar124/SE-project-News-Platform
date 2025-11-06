@@ -1,0 +1,64 @@
+/* pagecat.css */
+
+.pagecat {
+    width: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 20px 10px;
+  flex-wrap: wrap;
+  gap: 20px; 
+  margin-top: 60px;
+  margin-bottom: 30px;
+}
+
+.pagecat-card {
+  /* grow, shrink, basis 200px */
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 150px;
+  padding: 10px;
+}
+
+.pagecat-card img {
+  width: 60px; /* icon size */
+  height: 60px;
+  margin-bottom: 10px;
+}
+
+.pagecat-card p {
+  font-size: 17px;
+  font-weight: 500;
+  color:rgb(61, 61, 61);
+}
+
+
+/* Hover effect: premium glassy/neumorphic feel */
+.pagecat-card:hover {
+    transform: translateY(-8px) scale(1.05);
+    transition: 0.3s;
+    background: #ffffff30;
+    cursor:pointer;
+}
+
+.pagecat-card:hover img {
+    transform: scale(1.15);
+}
+
+.pagecat-card:hover p {
+    color: #0368da; 
+}
+
+@media (max-width: 600px) {
+  .pagecat {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .pagecat-card {
+    width: 70%;
+  }
+}

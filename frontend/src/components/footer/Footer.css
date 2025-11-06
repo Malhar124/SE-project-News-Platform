@@ -1,0 +1,46 @@
+/* Footer.css */
+
+.footer {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 20px 10px;
+  flex-wrap: wrap;
+  gap: 20px; 
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.footer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 150px;
+  padding: 10px;
+}
+
+.footer-card img {
+  width: 60px; /* icon size */
+  height: 60px;
+  margin-bottom: 10px;
+}
+
+.footer-card p {
+  font-size: 17px;
+  font-weight: 500;
+  color:rgb(61, 61, 61);
+}
+
+
+/* Responsive for smaller screens */
+@media (max-width: 600px) {
+  .footer {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .footer-card {
+    width: 70%;
+  }
+}

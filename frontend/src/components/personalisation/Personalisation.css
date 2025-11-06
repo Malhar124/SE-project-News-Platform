@@ -1,0 +1,17 @@
+.personalise{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 25px;
+    margin: 60px auto;
+}
+.personalisebtn{
+    background-color: black;
+    color:white;
+    border-radius: 12px;
+    outline: none;
+    border:none;
+    padding: 12px;
+    font-size: 17px;
+}

@@ -1,0 +1,58 @@
+.techheader{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 60px auto;
+}
+.techheader h3{
+    font-size: 2.4rem;
+}
+.seeallbtn{
+    background-color: black;
+    color:white;
+    border-radius: 12px;
+    outline: none;
+    border:none;
+    padding: 12px;
+    font-size: 17px;
+    margin-top: 25px;
+}
+.techcontent h2{
+    font-size: 2.1rem;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 0.5rem;
+  opacity: 0;
+  animation: fadeIn 1s ease forwards;
+  padding-left: 32px;
+}
+.techcontent p{
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #626262;
+    margin: 0.2rem 0;
+    padding-left: 32px;
+    opacity: 0;
+    animation: fadeIn 1s ease forwards;
+}
+.techslider .slider{
+    width: 80%;
+    height: 90%;
+}
+.techslider .header-contents h2{
+    font-size: 29px;
+
+}
+.techsection{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+.techcards{
+    display: flex;
+    width:100%;
+    justify-content: center;
+    align-items: center;
+}
