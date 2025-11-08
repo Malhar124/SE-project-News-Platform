@@ -1,30 +1,74 @@
-import "./sports.css"
-import ArticleList from '../../components/articleList/ArticleList'
-import { assets } from '../../assets/assets';
-import Pagecat from '../../components/pagecat/Pagecat';
-const Sports = () => {
-  const sportsCategories = [
-    { image: assets.football, title: "Football news", link: "football" },
-    { image: assets.cricket, title: "cricket scores", link: "cricket" },
-    { image: assets.tennis, title: "Tennis updates", link: "tennis" },
-    { image: assets.world, title: "World Events", link: "world" },
-    { image: assets.playerstats, title: "Player stats", link: "playerstats" },
-    { image: assets.tournaments, title: "Tournaments", link: "tournaments" },
-    { image: assets.bydate, title: "By Date", link: "bydate" },
-    { image: assets.byregion, title: "By Region", link: "byregion" },
-    
-  ];
-  return (
-    <div className='sports'>
-      <div className="pagecontent">
-        <h2>Top Sports News Today</h2>
-        <h3>Major headlines.Live updates</h3>
-      </div>
-      <Pagecat pageName="sports" categories={sportsCategories} />   
-        <h2 className="trending">Trending sports stories</h2>
-      <ArticleList category="sports" cardtype="Newspreviewcard"/>
-    </div>
-  )
-}
+import "./Sports.css";
+import React, { useContext, useEffect, useState } from "react";
+import { StoreContext } from "../../context/Storecontext";
+import ArticleList from "../../components/articleList/ArticleList";
+import Header from "../../components/header/Header";
+import Pagecat from "../../components/pagecat/Pagecat";
+import { assets } from "../../assets/assets";
+import { toast } from "react-toastify";
 
-export default Sports
+const Sports = () => {
+  const { fetchArticles, articles } = useContext(StoreContext);
+  const [slides, setSlides] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        await fetchArticles("sports");
+      } catch (error) {
+        console.error("Error loading sports articles:", error);
+        toast.error("Failed to load sports news.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadArticles();
+  }, [fetchArticles]);
+
+  useEffect(() => {
+    if (articles.length > 0) {
+      const topSlides = articles
+        .filter((a) => a.category === "sports" && a.urlToImage)
+        .slice(0, 5)
+        .map((a) => ({
+          image: a.urlToImage,
+          heading: a.title,
+          description: a.description || a.content?.slice(0, 100) || "",
+        }));
+      setSlides(topSlides);
+    }
+  }, [articles]);
+
+  const sportsCategories = [
+    { image: assets.football, title: "Football", link: "football" },
+    { image: assets.cricket, title: "Cricket", link: "cricket" },
+    { image: assets.tennis, title: "Tennis", link: "tennis" },
+    { image: assets.olympics, title: "Olympics", link: "olympics" },
+  ];
+
+  return (
+    <div className="sportspage">
+      <div className="pagecontent">
+        <h2>All the latest sports headlines</h2>
+        <h3>From cricket classics to football fever, stay up to date!</h3>
+      </div>
+
+      {slides.length > 0 ? (
+        <Header slides={slides} />
+      ) : (
+        <p className="loading">Loading top sports stories...</p>
+      )}
+
+      {loading ? (
+        <p className="loading">Fetching articles...</p>
+      ) : (
+        <ArticleList category="sports" cardtype="Newspreviewcard" />
+      )}
+
+      <Pagecat pageName="sports" categories={sportsCategories} />
+    </div>
+  );
+};
+
+export default Sports;

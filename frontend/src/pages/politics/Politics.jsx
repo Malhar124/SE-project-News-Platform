@@ -1,53 +1,74 @@
-import React from 'react'
-import ArticleList from '../../components/articleList/ArticleList'
-import "./Politics.css"
-import { assets } from '../../assets/assets'
-import Header from '../../components/header/Header'
+import "./Politics.css";
+import React, { useContext, useEffect, useState } from "react";
+import { StoreContext } from "../../context/Storecontext";
+import ArticleList from "../../components/articleList/ArticleList";
+import Header from "../../components/header/Header";
+import Pagecat from "../../components/pagecat/Pagecat";
+import { assets } from "../../assets/assets";
+import { toast } from "react-toastify";
+
 const Politics = () => {
-  const slides = [
-      {
-        image: assets.shops,
-        heading: "Lights that warn planes of obstacles were exposed to Open Internet",
-        description:
-          "Choose from a diverse menu featuring a delectable array of dishes crafted with the finest ingredients and culinary expertise. Our mission is to satisfy your cravings and elevate your dining experience, one delicious meal at a time.",
-      },
-      {
-        image: assets.labs,
-        heading: "State-of-the-Art Research Labs Unveiled",
-        description:
-          "Medical researchers have introduced advanced blood-testing methods that reduce diagnosis time by 60%.",
-      },
-      {
-        image: assets.researcher,
-        heading: "Collaboration Between Doctors and Lab Scientists Yields New Vaccine",
-        description:
-          "Stem cell researchers have successfully regenerated damaged tissues, marking a milestone in recovery science.",
-      },
-      {
-        image: assets.sanitizer,
-        heading: "Doctors and Researchers Pioneer Smart Health Monitoring",
-        description:
-          "A collaborative team develops wearable biosensors for early disease detection and remote health tracking.",
-      },
-      {
-        image: assets.street,
-        heading: "Innovative Urban Lab Studies Pollution Impact",
-        description:
-          "Researchers explore how micro-level pollution affects city health and propose AI-driven monitoring solutions.",
-      },
-    ];
+  const { fetchArticles, articles } = useContext(StoreContext);
+  const [slides, setSlides] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        await fetchArticles("politics");
+      } catch (error) {
+        console.error("Error loading political articles:", error);
+        toast.error("Failed to load political news.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadArticles();
+  }, [fetchArticles]);
+
+  useEffect(() => {
+    if (articles.length > 0) {
+      const topSlides = articles
+        .filter((a) => a.category === "politics" && a.urlToImage)
+        .slice(0, 5)
+        .map((a) => ({
+          image: a.urlToImage,
+          heading: a.title,
+          description: a.description || a.content?.slice(0, 100) || "",
+        }));
+      setSlides(topSlides);
+    }
+  }, [articles]);
+
+  const politicsCategories = [
+    { image: assets.diplomacy, title: "Global Affairs", link: "global" },
+    { image: assets.election, title: "Elections", link: "elections" },
+    { image: assets.policy, title: "Policy & Governance", link: "policy" },
+    { image: assets.research, title: "Public Opinion", link: "opinion" },
+  ];
+
   return (
-    <div className='politics'>
+    <div className="politicspage">
       <div className="pagecontent">
-        <h2>Top Geopolitical News Today</h2>
-        <h3>Analysis & headlines for a changing world.</h3>
+        <h2>Stay informed on politics and world affairs</h2>
+        <h3>Covering policy, governance, and global diplomacy.</h3>
       </div>
-      <Header slides={slides}/>
-      <ArticleList category="politics" cardtype="Newscard"/>
-      <ArticleList category="politics" cardtype="Newspreviewcard"/>
 
+      {slides.length > 0 ? (
+        <Header slides={slides} />
+      ) : (
+        <p className="loading">Loading top political stories...</p>
+      )}
+
+      {loading ? (
+        <p className="loading">Fetching articles...</p>
+      ) : (
+        <ArticleList category="politics" cardtype="Newspreviewcard" />
+      )}
+
+      <Pagecat pageName="politics" categories={politicsCategories} />
     </div>
-  )
-}
+  );
+};
 
-export default Politics
+export default Politics;

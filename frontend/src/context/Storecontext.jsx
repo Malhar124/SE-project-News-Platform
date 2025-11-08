@@ -1,53 +1,37 @@
+// src/context/Storecontext.jsx
+
 import { createContext, useEffect, useState } from "react";
-import { initializeApp } from "firebase/app";
 import {
-  getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
 import {
-  getFirestore,
   collection,
   getDocs,
   doc,
-  getDoc,
   setDoc,
   query,
   where,
 } from "firebase/firestore";
-import { getFunctions, httpsCallable } from "firebase/functions";
+import { httpsCallable } from "firebase/functions";
 import { toast } from "react-toastify";
 
-// ---------------- FIREBASE CONFIGURATION ----------------
-const firebaseConfig = {
-  apiKey: "AIzaSy...YOUR_KEY...", // 🔥 Replace this with your real key from Firebase console
-  authDomain: "news-platform-backend-eb75e.firebaseapp.com",
-  projectId: "news-platform-backend-eb75e",
-  storageBucket: "news-platform-backend-eb75e.appspot.com",
-  messagingSenderId: "294081418513",
-  appId: "1:294081418513:web:xxxxxxxxxxxxxxxxxxxx",
-};
+// ✅ Import your already initialized Firebase app
+import { auth, db, functions } from "../firebase";
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const functions = getFunctions(app);
-
-// ---------------- CONTEXT SETUP ----------------
 export const StoreContext = createContext(null);
 
-export default function StoreContextProvider(props) {
+export default function StoreContextProvider({ children }) {
   const [showlogin, setshowlogin] = useState(false);
-  const [user, setUser] = useState(null); // Firebase user
+  const [user, setUser] = useState(null);
   const [token, settoken] = useState(localStorage.getItem("token") || "");
   const [articles, setArticles] = useState([]);
   const [showsummary, setshowsummary] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Auto-sync Firebase Auth
+  // ✅ Auth state listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
@@ -68,7 +52,7 @@ export default function StoreContextProvider(props) {
     return () => unsubscribe();
   }, []);
 
-  // ✅ Fetch Articles from Firestore (using category)
+  // ✅ Firestore fetch
   const fetchArticles = async (category = null) => {
     try {
       const articlesRef = collection(db, "articles");
@@ -89,7 +73,7 @@ export default function StoreContextProvider(props) {
     }
   };
 
-  // ✅ Authentication Functions
+  // ✅ Auth actions
   const loginUser = async (email, password) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -136,7 +120,7 @@ export default function StoreContextProvider(props) {
     }
   };
 
-  // ✅ Example: Call a Firebase Cloud Function (optional)
+  // ✅ Cloud Function example
   const runSemanticSearch = async (keyword) => {
     try {
       const semanticSearch = httpsCallable(functions, "semanticSearch");
@@ -164,14 +148,11 @@ export default function StoreContextProvider(props) {
     registerUser,
     logoutUser,
     runSemanticSearch,
-    db,
-    auth,
-    functions,
   };
 
   return (
     <StoreContext.Provider value={contextValue}>
-      {props.children}
+      {children}
     </StoreContext.Provider>
   );
 }

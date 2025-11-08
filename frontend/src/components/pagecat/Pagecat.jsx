@@ -27,7 +27,7 @@ const Pagecat = ({ pageName }) => {
               title: cat.charAt(0).toUpperCase() + cat.slice(1),
               image:
                 data.urlToImage ||
-                "https://via.placeholder.com/300x200?text=No+Image",
+                "https://placehold.co/300x200?text=No+Image",
               link: cat,
             });
           }
