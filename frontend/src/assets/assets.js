@@ -1,4 +1,5 @@
 import search_icon from "./search_icon.png"
+import logout from "./logout.png"
 import logo from "./logo.png"
 import shops from "./shops.jpg"
 import labs from "./labs.jpg"
@@ -22,8 +23,10 @@ import tournaments from "./tournaments.png";
 import bydate from "./bydate.png";
 import byregion from "./byregion.png";
 import cross_icon from "./cross_icon.png"
-
+import profile_icon from "./profile_icon.png"
+import backicon from "./backicon.png"
 export const assets={
+    backicon,
     search_icon,
     logo,
     shops,
@@ -47,5 +50,7 @@ export const assets={
     tennis,
     tournaments,
     playerstats,
-    cross_icon
+    cross_icon,
+    profile_icon,
+    logout
 }

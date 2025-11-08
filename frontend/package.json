@@ -12,14 +12,12 @@
   "dependencies": {
     "@react-oauth/google": "^0.12.2",
     "axios": "^1.12.2",
-    "firebase": "^12.5.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.3",
     "ngrok": "^5.0.0-beta.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.4",
-    "react-spinners": "^0.17.0",
     "react-toastify": "^11.0.5"
   },
   "devDependencies": {

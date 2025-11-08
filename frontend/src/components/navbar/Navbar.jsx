@@ -1,118 +1,182 @@
-import React, { useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { StoreContext } from '../../context/Storecontext.jsx';
-// import './Navbar.css'; // Assuming you have styles
+import React, { useState, useEffect, useContext } from "react";
+import "./Navbar.css";
+import { assets } from "../../assets/assets";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { StoreContext } from "../../context/Storecontext";
+import { auth } from "../../firebase"; // ✅ Import Firebase Auth
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 const Navbar = () => {
-    const { user, logout, setShowLogin } = useContext(StoreContext);
-    const navigate = useNavigate();
+  const [menu, setMenu] = useState("home");
+  const [navSearch, setNavSearch] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    const handleLogout = () => {
-        logout();
-        navigate('/'); // Navigate to home on logout
-    };
+  const { setshowlogin, token, settoken } = useContext(StoreContext);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    return (
-        <nav className='navbar' style={styles.navbar}>
-            <Link to='/' style={styles.logo}>
-                <h1>AI News</h1>
-            </Link>
-            
-            <ul className='navbar-menu' style={styles.menu}>
-                <li style={styles.menuItem}><Link to='/' style={styles.link}>Home</Link></li>
-                <li style={styles.menuItem}><Link to='/tech' style={styles.link}>Tech</Link></li>
-                <li style={styles.menuItem}><Link to='/sports' style={styles.link}>Sports</Link></li>
-                <li style={styles.menuItem}><Link to='/politics' style={styles.link}>Politics</Link></li>
-                <li style={styles.menuItem}><Link to='/entertainment' style={styles.link}>Entertainment</Link></li>
+  // ✅ Track Firebase Auth state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const token = await user.getIdToken();
+        localStorage.setItem("token", token);
+        settoken(token);
+      } else {
+        localStorage.removeItem("token");
+        settoken("");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [settoken]);
+
+  // ✅ Handle logout
+  const logout = async () => {
+    await signOut(auth);
+    localStorage.removeItem("token");
+    settoken("");
+    navigate("/");
+  };
+
+  // ✅ Highlight correct menu based on route
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === "/") setMenu("home");
+    else if (path.includes("finance")) setMenu("finance");
+    else if (path.includes("sports")) setMenu("sports");
+    else if (path.includes("entertainment")) setMenu("entertainment");
+    else if (path.includes("politics")) setMenu("politics");
+    else if (path.includes("tech")) setMenu("technology");
+  }, [location]);
+
+  return (
+    <div className="navbar">
+      <Link to="/">
+        <h1>NewsDesk</h1>
+      </Link>
+
+      {/* ---- Navigation Links ---- */}
+      <div className={`navmenu ${navSearch ? "hide" : ""}`}>
+        <ul>
+          <Link
+            to="/"
+            onClick={() => setMenu("home")}
+            className={menu === "home" ? "active" : ""}
+          >
+            Home
+          </Link>
+          <Link
+            to="/finance"
+            onClick={() => setMenu("finance")}
+            className={menu === "finance" ? "active" : ""}
+          >
+            Finance
+          </Link>
+          <Link
+            to="/sports"
+            onClick={() => setMenu("sports")}
+            className={menu === "sports" ? "active" : ""}
+          >
+            Sports
+          </Link>
+          <Link
+            to="/entertainment"
+            onClick={() => setMenu("entertainment")}
+            className={menu === "entertainment" ? "active" : ""}
+          >
+            Entertainment
+          </Link>
+          <Link
+            to="/politics"
+            onClick={() => setMenu("politics")}
+            className={menu === "politics" ? "active" : ""}
+          >
+            Politics
+          </Link>
+          <Link
+            to="/tech"
+            onClick={() => setMenu("technology")}
+            className={menu === "technology" ? "active" : ""}
+          >
+            Technology
+          </Link>
+        </ul>
+      </div>
+
+      {/* ---- Right Icons ---- */}
+      <div className="navright">
+        {/* Search Input */}
+        <div className="navsearch">
+          <input
+            type="text"
+            name="search"
+            className={`inputsearch ${navSearch ? "show" : ""}`}
+            placeholder="Search..."
+          />
+          <img
+            onClick={() => setNavSearch((prev) => !prev)}
+            src={assets.search_icon}
+            alt=""
+            className="search_icon"
+          />
+        </div>
+
+        {/* ---- Login/Profile Section ---- */}
+        {!token ? (
+          <button className="btn signin" onClick={() => setshowlogin(true)}>
+            Sign in
+          </button>
+        ) : (
+          <div className="navprofile">
+            <img src={assets.profile_icon} alt="profile" />
+            <ul className="navprofiledropdown">
+              <li onClick={() => navigate("/profile")}>
+                <img src={assets.user} alt="" />
+                <p>Profile</p>
+              </li>
+              <hr />
+              <li onClick={logout}>
+                <img src={assets.logout} alt="" />
+                <p>Logout</p>
+              </li>
             </ul>
+          </div>
+        )}
 
-            <div className='navbar-right' style={styles.navbarRight}>
-                {/* <button style={styles.searchButton}>Search</button> */}
-                {user ? (
-                    // User is logged in
-                    <div className='navbar-profile' style={styles.profile}>
-                        <span style={styles.username}>Profile</span>
-                        <div className='profile-dropdown' style={styles.dropdown}>
-                            {/* This would be a dropdown on hover in a real app */}
-                            <button onClick={handleLogout} style={styles.logoutButton}>
-                                Logout
-                            </button>
-                        </div>
-                    </div>
-                ) : (
-                    // User is logged out
-                    <button 
-                        onClick={() => setShowLogin(true)}
-                        style={styles.loginButton}
-                    >
-                        Login
-                    </button>
-                )}
-            </div>
-        </nav>
-    );
-};
+        {/* Hamburger Menu */}
+        <img
+          src={assets.menu_icon}
+          alt="menu"
+          className="menu_icon"
+          onClick={() => setSidebarOpen(true)}
+        />
+      </div>
 
-// --- Basic CSS-in-JS for Demonstration ---
-const styles = {
-    navbar: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '10px 20px',
-        backgroundColor: '#fff',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-    },
-    logo: {
-        textDecoration: 'none',
-        color: '#000',
-        fontSize: '18px'
-    },
-    menu: {
-        display: 'flex',
-        listStyle: 'none',
-        gap: '20px'
-    },
-    menuItem: {},
-    link: {
-        textDecoration: 'none',
-        color: '#333'
-    },
-    navbarRight: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '15px'
-    },
-    profile: {
-        position: 'relative'
-    },
-    username: {
-        cursor: 'pointer'
-    },
-    dropdown: {
-        // You would show/hide this on hover in a real app
-        display: 'none', // Simple for now
-        position: 'absolute',
-        top: '100%',
-        right: 0,
-        backgroundColor: 'white',
-        border: '1px solid #ccc',
-        borderRadius: '4px'
-    },
-    logoutButton: {
-        padding: '10px',
-        border: 'none',
-        background: 'none',
-        cursor: 'pointer'
-    },
-    loginButton: {
-        padding: '10px 20px',
-        border: '1px solid #007bff',
-        borderRadius: '20px',
-        backgroundColor: 'transparent',
-        color: '#007bff',
-        cursor: 'pointer'
-    }
+      {/* ---- Sidebar ---- */}
+      <div className={`sidebar ${sidebarOpen ? "open" : ""}`}>
+        <div className="sidebar-header">
+          <h1>NewsDesk</h1>
+          <span className="close-btn" onClick={() => setSidebarOpen(false)}>
+            ×
+          </span>
+        </div>
+        <ul>
+          <Link to="/" onClick={() => { setMenu("home"); setSidebarOpen(false); }}>Home</Link>
+          <Link to="/finance" onClick={() => { setMenu("finance"); setSidebarOpen(false); }}>Finance</Link>
+          <Link to="/sports" onClick={() => { setMenu("sports"); setSidebarOpen(false); }}>Sports</Link>
+          <Link to="/entertainment" onClick={() => { setMenu("entertainment"); setSidebarOpen(false); }}>Entertainment</Link>
+          <Link to="/politics" onClick={() => { setMenu("politics"); setSidebarOpen(false); }}>Politics</Link>
+          <Link to="/tech" onClick={() => { setMenu("technology"); setSidebarOpen(false); }}>Technology</Link>
+        </ul>
+      </div>
+
+      {/* ---- Overlay ---- */}
+      {sidebarOpen && (
+        <div className="overlay" onClick={() => setSidebarOpen(false)}></div>
+      )}
+    </div>
+  );
 };
 
 export default Navbar;

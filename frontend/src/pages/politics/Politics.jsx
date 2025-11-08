@@ -1,12 +1,40 @@
 import React from 'react'
-import ArticleList from '../../components/articleList/ArticleList.jsx'
+import ArticleList from '../../components/articleList/ArticleList'
 import "./Politics.css"
-import { assets } from '../../assets/assets.js' // Assuming assets.js
-import Header from '../../components/header/Header.jsx'
-
+import { assets } from '../../assets/assets'
+import Header from '../../components/header/Header'
 const Politics = () => {
   const slides = [
-      // ... your slides data
+      {
+        image: assets.shops,
+        heading: "Lights that warn planes of obstacles were exposed to Open Internet",
+        description:
+          "Choose from a diverse menu featuring a delectable array of dishes crafted with the finest ingredients and culinary expertise. Our mission is to satisfy your cravings and elevate your dining experience, one delicious meal at a time.",
+      },
+      {
+        image: assets.labs,
+        heading: "State-of-the-Art Research Labs Unveiled",
+        description:
+          "Medical researchers have introduced advanced blood-testing methods that reduce diagnosis time by 60%.",
+      },
+      {
+        image: assets.researcher,
+        heading: "Collaboration Between Doctors and Lab Scientists Yields New Vaccine",
+        description:
+          "Stem cell researchers have successfully regenerated damaged tissues, marking a milestone in recovery science.",
+      },
+      {
+        image: assets.sanitizer,
+        heading: "Doctors and Researchers Pioneer Smart Health Monitoring",
+        description:
+          "A collaborative team develops wearable biosensors for early disease detection and remote health tracking.",
+      },
+      {
+        image: assets.street,
+        heading: "Innovative Urban Lab Studies Pollution Impact",
+        description:
+          "Researchers explore how micro-level pollution affects city health and propose AI-driven monitoring solutions.",
+      },
     ];
   return (
     <div className='politics'>
@@ -15,14 +43,9 @@ const Politics = () => {
         <h3>Analysis & headlines for a changing world.</h3>
       </div>
       <Header slides={slides}/>
-      {/* This component will now fetch its own data.
-        The 'cardtype' prop is no longer used by our new ArticleList.
-        We'll use one ArticleList component.
-      */}
-      <ArticleList 
-        category="politics" // "politics" is not a valid category, use "general"
-        defaultQuery="latest politics" 
-      />
+      <ArticleList category="politics" cardtype="Newscard"/>
+      <ArticleList category="politics" cardtype="Newspreviewcard"/>
+
     </div>
   )
 }

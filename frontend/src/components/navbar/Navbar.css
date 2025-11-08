@@ -199,3 +199,41 @@ opacity: 0;
     } */
     
 }
+
+/* navprofile */
+.navprofile{
+    position:relative;
+    cursor: pointer;
+  
+}
+.navprofiledropdown{
+    position: absolute;
+    display: none;
+    right: 0;
+    z-index: 1;
+    list-style: none;
+}
+.navprofile:hover .navprofiledropdown{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #b6b5b5;
+    /* color: white; */
+    padding: 12px 25px;
+    border: 1px solid black;
+    border-radius: 4px;
+    outline: 2px solid white;
+}
+.navprofiledropdown li{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.navprofiledropdown li img{
+    width: 20px;
+}
+.navprofiledropdown li:hover{
+    color: black;
+}

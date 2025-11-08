@@ -1,54 +1,79 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Header.css";
-import { assets } from "../../assets/assets";
+import { getArticles } from "../../data/firestore"; // Firestore helper
 
-const Header = ({slides}) => {
-//When you start fetching images from a database later, you can replace:
-// const images = [assets.shops, assets.labs, ...];
-// with
-// const [images, setImages] = useState([]);
-// useEffect(() => {
-//   fetch("/api/images").then(res => res.json()).then(data => setImages(data));
-// }, []);
-// and everything else stays the same ✅
-
-
-
-  // Step 1: Put your image sources in an array
-  
-  // Step 2: Track which image is currently shown
+const Header = () => {
+  const [slides, setSlides] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  // Step 3: Handlers for next and previous buttons
+  // 🔥 Fetch top headlines from Firestore
+  useEffect(() => {
+    async function fetchTopSlides() {
+      try {
+        const generalArticles = await getArticles("general"); // category from Firestore
+        // Take first 5 articles for slideshow
+        const topFive = generalArticles.slice(0, 5).map((article) => ({
+          image: article.urlToImage || "https://via.placeholder.com/800x400?text=No+Image",
+          heading: article.title,
+          description: article.content
+            ? article.content.substring(0, 150) + "..."
+            : "Latest update from global news and events.",
+        }));
+
+        setSlides(topFive);
+      } catch (error) {
+        console.error("Error fetching slides:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchTopSlides();
+  }, []);
+
+  // Navigation Handlers
   const handleNext = () => {
-    setCurrentIndex((previndex) =>
-      previndex === slides.length - 1 ? 0 : previndex + 1
+    setCurrentIndex((prev) =>
+      slides.length ? (prev + 1) % slides.length : 0
     );
   };
 
   const handlePrev = () => {
-    setCurrentIndex((previndex) =>
-      previndex === 0 ? slides.length - 1 : previndex - 1
+    setCurrentIndex((prev) =>
+      slides.length ? (prev - 1 + slides.length) % slides.length : 0
     );
   };
 
-  return (
-     <div className="header">
-      <div className="slider">
+  if (loading) {
+    return <div className="header">Loading top stories...</div>;
+  }
 
+  if (!slides.length) {
+    return (
+      <div className="header">
+        <p>No top stories available at the moment.</p>
+      </div>
+    );
+  }
+
+  const currentSlide = slides[currentIndex];
+
+  return (
+    <div className="header">
+      <div className="slider">
         <img
-          src={slides[currentIndex].image}
+          src={currentSlide.image}
           alt={`slide-${currentIndex}`}
           className="slide-image"
         />
         <div className="header-contents">
-            <h2>{slides[currentIndex].heading}</h2>
-            <p>{slides[currentIndex].description}</p>
-            <div className="nav-btn">
-                <button className="prev" onClick={handlePrev}>◀</button>
-                <button className="next" onClick={handleNext}>▶</button>
-            </div>
-            
+          <h2>{currentSlide.heading}</h2>
+          <p>{currentSlide.description}</p>
+          <div className="nav-btn">
+            <button className="prev" onClick={handlePrev}>◀</button>
+            <button className="next" onClick={handleNext}>▶</button>
+          </div>
         </div>
       </div>
     </div>

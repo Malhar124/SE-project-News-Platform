@@ -3,3 +3,8 @@
     flex-direction: column;
     gap: 40px;
 }
+.homelist{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

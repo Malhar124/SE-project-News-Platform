@@ -1,0 +1,173 @@
+/* ProfilePage.css */
+
+/* --- Global / Container Styles --- */
+
+.profile-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Align to the top of the viewport */
+    min-height: 100vh;
+    padding: 40px 20px;
+    background-color: #f4f7f6; /* Light gray background for the page */
+    font-family: 'Helvetica Neue', Arial, sans-serif; /* Professional, clean font */
+    color: #333; /* Dark text for readability */
+}
+
+/* --- Profile Card Styles --- */
+
+.profile-card {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Subtle shadow for depth */
+    width: 100%;
+    max-width: 600px; /* Constrain width for better readability */
+    padding: 30px 40px;
+    box-sizing: border-box;
+}
+
+/* --- Header Styles --- */
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee; /* Separator line */
+}
+
+.avatar {
+    width: 60px;
+    height: 60px;
+    background-color: #007bff; /* Primary brand color (blue) */
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0 auto 15px;
+}
+
+.profile-header h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #222;
+    margin: 0 0 5px;
+}
+
+.profile-header p {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+}
+
+/* --- Form Styles --- */
+
+.profile-form label {
+    display: block;
+    font-weight: 600;
+    margin-top: 20px;
+    margin-bottom: 8px;
+    color: #333;
+    font-size: 14px;
+}
+
+.profile-form input,
+.profile-form select {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.profile-form input:focus,
+.profile-form select:focus {
+    border-color: #007bff; /* Highlight on focus */
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.2);
+}
+
+/* Read-only email style */
+.profile-form input[readOnly] {
+    background-color: #f8f8f8;
+    color: #666;
+    cursor: not-allowed;
+}
+
+/* --- Preferences Grid Styles --- */
+
+.preferences-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.preference-btn {
+    padding: 8px 15px;
+    border: 1px solid #ccc;
+    border-radius: 20px; /* Pill shape for tags */
+    background-color: #fff;
+    color: #555;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.preference-btn:hover {
+    background-color: #f0f0f0;
+    border-color: #aaa;
+}
+
+.preference-btn.active {
+    background-color: #007bff; /* Active color */
+    color: white;
+    border-color: #007bff;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+/* --- Save Button Styles --- */
+
+.save-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff; /* Primary button color */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 30px;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.save-btn:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+.save-btn:active {
+    transform: scale(0.99);
+}
+
+/* --- Responsive Adjustments (for smaller screens) --- */
+@media (max-width: 600px) {
+    .profile-card {
+        padding: 20px 25px;
+    }
+
+    .profile-header h2 {
+        font-size: 24px;
+    }
+
+    .save-btn {
+        font-size: 16px;
+    }
+}

@@ -134,6 +134,7 @@ The film’s director credited the “power of storytelling over spectacle” du
 
 Music performances from Billie Eilish and A.R. Rahman captivated audiences, while tributes honored cinema legends Martin Scorsese and Meryl Streep.`,
       category: "entertainment",
+      summary:"Technology has revolutionized the way education is delivered in the 21st century. From traditional classrooms to online learning platforms, the integration of digital tools has transformed teaching and learning processes. Students now have access to an unprecedented amount of information, allowing them to explore subjects in greater depth and at their own pace. Unlike the rigid, lecture-based models of the past, modern education emphasizes interactive learning, collaboration, and critical thinking. Teachers can now leverage multimedia presentations, online assessments, and virtual simulations to create a more engaging and comprehensive learning experience."
     },
     {
       id: 402,
@@ -207,8 +208,13 @@ Delegations from over 100 countries attended the three-day event, with discussio
 The United States and the European Union pledged to reduce carbon emissions by 60% by 2035, while developing nations requested more financial aid for green transitions. 
 The conference also saw commitments for global partnerships in hydrogen energy and carbon capture technologies.
 
-Critics argue that while the promises are ambitious, the implementation remains uncertain without concrete accountability frameworks.`,
+Critics argue that while the promises are ambitious, the implementation remains uncertain without concrete accountability frameworks.Online education has become a cornerstone of modern learning, particularly highlighted during global crises such as the COVID-19 pandemic.
+ Platforms like Zoom, Google Classroom, and Microsoft Teams enabled students to continue their studies remotely without significant disruption. These platforms provide a range of tools including live lectures, discussion forums, and digital assignments, bridging the gap between educators and learners. Furthermore, online education has democratized access to learning by allowing students from remote or underprivileged regions to participate in quality education programs that were previously inaccessible.`,
       category: "politics",
+      summary:`Online education has become a cornerstone of modern learning, particularly highlighted during global crises such as the COVID-19 pandemic. Platforms like Zoom,
+       Google Classroom, and Microsoft Teams enabled students to continue their studies remotely without significant disruption. These platforms provide a range of tools including live lectures,
+        discussion forums, and digital assignments, bridging the gap between educators and learners. Furthermore, online education has democratized access to learning by allowing students from remote or 
+        underprivileged regions to participate in quality education programs that were previously inaccessible.`
     },
     {
       id: 502,
@@ -221,6 +227,10 @@ Meanwhile, European countries are experimenting with blockchain-based verificati
 
 Political analysts see this as a sign of renewed public faith in democratic institutions, though concerns about misinformation and data privacy persist.`,
       category: "politics",
+      summary:`Online education has become a cornerstone of modern learning, particularly highlighted during global crises such as the COVID-19 pandemic. Platforms like Zoom,
+       Google Classroom, and Microsoft Teams enabled students to continue their studies remotely without significant disruption. These platforms provide a range of tools including live lectures,
+        discussion forums, and digital assignments, bridging the gap between educators and learners. Furthermore, online education has democratized access to learning by allowing students from remote or 
+        underprivileged regions to participate in quality education programs that were previously inaccessible.`
     },
    
     {
@@ -235,6 +245,10 @@ The conference also saw commitments for global partnerships in hydrogen energy a
 
 Critics argue that while the promises are ambitious, the implementation remains uncertain without concrete accountability frameworks.`,
       category: "politics",
+      summary:`Online education has become a cornerstone of modern learning, particularly highlighted during global crises such as the COVID-19 pandemic. Platforms like Zoom,
+       Google Classroom, and Microsoft Teams enabled students to continue their studies remotely without significant disruption. These platforms provide a range of tools including live lectures,
+        discussion forums, and digital assignments, bridging the gap between educators and learners. Furthermore, online education has democratized access to learning by allowing students from remote or 
+        underprivileged regions to participate in quality education programs that were previously inaccessible.`
     },
     {
       id: 502,
@@ -247,6 +261,10 @@ Meanwhile, European countries are experimenting with blockchain-based verificati
 
 Political analysts see this as a sign of renewed public faith in democratic institutions, though concerns about misinformation and data privacy persist.`,
       category: "politics",
+      summary:`Online education has become a cornerstone of modern learning, particularly highlighted during global crises such as the COVID-19 pandemic. Platforms like Zoom,
+       Google Classroom, and Microsoft Teams enabled students to continue their studies remotely without significant disruption. These platforms provide a range of tools including live lectures,
+        discussion forums, and digital assignments, bridging the gap between educators and learners. Furthermore, online education has democratized access to learning by allowing students from remote or 
+        underprivileged regions to participate in quality education programs that were previously inaccessible.`
     },
     {
       id: 501,
@@ -260,6 +278,10 @@ The conference also saw commitments for global partnerships in hydrogen energy a
 
 Critics argue that while the promises are ambitious, the implementation remains uncertain without concrete accountability frameworks.`,
       category: "politics",
+      summary:`Online education has become a cornerstone of modern learning, particularly highlighted during global crises such as the COVID-19 pandemic. Platforms like Zoom,
+       Google Classroom, and Microsoft Teams enabled students to continue their studies remotely without significant disruption. These platforms provide a range of tools including live lectures,
+        discussion forums, and digital assignments, bridging the gap between educators and learners. Furthermore, online education has democratized access to learning by allowing students from remote or 
+        underprivileged regions to participate in quality education programs that were previously inaccessible.`
     },
     {
       id: 502,
@@ -272,6 +294,10 @@ Meanwhile, European countries are experimenting with blockchain-based verificati
 
 Political analysts see this as a sign of renewed public faith in democratic institutions, though concerns about misinformation and data privacy persist.`,
       category: "politics",
+      summary:`Online education has become a cornerstone of modern learning, particularly highlighted during global crises such as the COVID-19 pandemic. Platforms like Zoom,
+       Google Classroom, and Microsoft Teams enabled students to continue their studies remotely without significant disruption. These platforms provide a range of tools including live lectures,
+        discussion forums, and digital assignments, bridging the gap between educators and learners. Furthermore, online education has democratized access to learning by allowing students from remote or 
+        underprivileged regions to participate in quality education programs that were previously inaccessible.`
     },
   ],
   sports: [
