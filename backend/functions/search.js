@@ -41,6 +41,8 @@ exports.semanticSearch = onCall(async (request) => {
 
   // 1️⃣ Verify authentication
   const uid = verifyAuth(context);
+  console.log("uid ",uid);
+  console.log("hello")
   logger.info(`🔍 Keyword search initiated by UID: ${uid}`);
 
   // 2️⃣ Validate input
