@@ -119,7 +119,7 @@ const Navbar = () => {
             Politics
           </Link>
           <Link
-            to="/tech"
+            to="/technology"
             onClick={() => setMenu("technology")}
             className={menu === "technology" ? "active" : ""}
           >
