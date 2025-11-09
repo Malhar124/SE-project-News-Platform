@@ -1,109 +1,117 @@
 /**
- * Firebase Callable Cloud Function for performing KEYWORD search.
- * This function does NOT use vector embeddings or external Python services.
- * It queries Firestore directly using an 'array-contains-any' query
- * on a pre-generated 'keywords' field.
+ * Firebase Callable Cloud Function for performing keyword search.
+ * This function queries Firestore using the `keywords` field.
+ * It supports optional category filtering and sorts results by `publishedAt`.
  */
 
-const functions = require("firebase-functions");
-// Import the initialized Firestore instance
-const {firestoreDb} = require("./src/utils/firebase");
-// Import the authentication helper
-const {verifyAuth} = require("./src/utils/auth");
+const { onCall } = require("firebase-functions/v2/https");
+const { logger, HttpsError } = require("firebase-functions");
+const { firestoreDb } = require("./src/utils/firebase");
+const { verifyAuth } = require("./src/utils/auth");
 
 /**
- * Cleans a search query string and splits it into an array of keywords.
- * @param {string} queryText The raw user search query.
- * @return {string[]} An array of cleaned, lowercase keywords.
+ * Cleans and splits a search query string into an array of keywords.
+ * @param {string} queryText - The raw user search query.
+ * @return {string[]} Array of cleaned, lowercase keywords.
  */
 function generateKeywordsFromQuery(queryText) {
   if (!queryText || typeof queryText !== "string") return [];
 
-  // A simple list of stop words to ignore, similar to the Python script
+  // Basic stop words to ignore
   const stopWords = new Set([
-    "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "he",
-    "in", "is", "it", "its", "of", "on", "that", "the", "to", "was", "were", "will", "with",
+    "a", "an", "and", "are", "as", "at", "be", "by", "for",
+    "from", "has", "he", "in", "is", "it", "its", "of", "on",
+    "that", "the", "to", "was", "were", "will", "with",
   ]);
 
-  // Simple text cleaning: lowercase, remove punctuation, split by space
+  // Lowercase, remove punctuation, split into words
   const words = queryText
-      .toLowerCase()
-      .replace(/[^\w\s]/g, "") // Remove punctuation
-      .split(/\s+/) // Split by one or more spaces
-      .filter((word) => word && !stopWords.has(word) && word.length > 2); // Filter empty/stop words
+    .toLowerCase()
+    .replace(/[^\w\s]/g, "") // Remove punctuation
+    .split(/\s+/)
+    .filter((word) => word && !stopWords.has(word) && word.length > 2);
 
-  // Return a unique set of keywords
+  // Return unique keywords
   return [...new Set(words)];
 }
 
-exports.semanticSearch = functions.https.onCall(async (data, context) => {
-  // 1. Verify Authentication
+/**
+ * Callable Cloud Function: semanticSearch
+ * Performs Firestore keyword-based search using array-contains-any.
+ */
+exports.semanticSearch = onCall(async (data, context) => {
+  // 1️⃣ Verify authentication
   const uid = verifyAuth(context);
-  console.log(`Keyword search initiated by authenticated user: ${uid}`);
+  logger.info(`🔍 Keyword search initiated by UID: ${uid}`);
 
-  // 2. Get and Process Query
+  // 2️⃣ Validate input
   const queryText = data.query;
   if (!queryText || typeof queryText !== "string" || queryText.trim().length === 0) {
-    throw new functions.https.HttpsError("invalid-argument", "The function must be called with a non-empty string \"query\" argument.");
+    throw new HttpsError(
+      "invalid-argument",
+      "The function must be called with a non-empty string \"query\" argument."
+    );
   }
 
-  // Generate keywords from the user's query
+  // 3️⃣ Extract keywords from the query
   const searchKeywords = generateKeywordsFromQuery(queryText);
-
   if (searchKeywords.length === 0) {
-    console.log("No valid keywords after processing query.");
-    return {articles: []}; // Return empty results
+    logger.info("No valid keywords after processing query.");
+    return { articles: [] };
   }
 
-  const categoryFilter = data.category || null;
-  console.log(`Keyword Search: Keywords=${searchKeywords.join(", ")}, Category='${categoryFilter || "None"}'`);
+  // 4️⃣ Optional category filter
+  const categoryFilter = data.category ? data.category : null;
+  logger.info(
+    `Keyword Search: keywords=[${searchKeywords.join(", ")}], category=${
+      categoryFilter || "None"
+    }`
+  );
 
   try {
-    // 3. Build the Firestore Query
     let query = firestoreDb.collection("articles");
 
-    // A. Apply category filter if it exists
+    // Apply category filter if provided
     if (categoryFilter) {
       query = query.where("category", "==", categoryFilter);
     }
 
-    // B. Apply keyword filter
-    // Find documents where the 'keywords' array contains ANY of the search keywords
-    // Note: Firestore 'array-contains-any' is limited to 30 keywords. We'll take the first 10.
+    // Firestore allows max 30 terms in array-contains-any
     const keywordsForQuery = searchKeywords.slice(0, 10);
     query = query.where("keywords", "array-contains-any", keywordsForQuery);
 
-    // C. Limit and order the results
-    query = query.orderBy("publishedAt", "desc").limit(25); // Order by most recent
+    // Order by newest first and limit results
+    query = query.orderBy("publishedAt", "desc").limit(25);
 
-    // 4. Execute the query
+    // 5️⃣ Execute the query
     const snapshot = await query.get();
 
     if (snapshot.empty) {
-      console.log("No matching documents found in Firestore.");
-      return {articles: []};
+      logger.info("No matching articles found in Firestore.");
+      return { articles: [] };
     }
 
-    // 5. Format and return results
+    // 6️⃣ Prepare response
     const articles = [];
     snapshot.forEach((doc) => {
       const data = doc.data();
-      // Exclude large fields to save bandwidth
-      const {full_clean_content, keywords, ...article} = data;
-      articles.push({id: doc.id, ...article});
+      const { full_clean_content, keywords, ...article } = data;
+      articles.push({ id: doc.id, ...article });
     });
 
-    console.log(`Returning ${articles.length} articles.`);
-    return {articles: articles};
+    logger.info(`✅ Returning ${articles.length} matching articles.`);
+    return { articles };
   } catch (error) {
-    console.error("Error during keyword search:", error);
-    // This can happen if you are missing a composite index
+    logger.error("❌ Error during keyword search:", error);
+
     if (error.code === "failed-precondition") {
-      throw new functions.https.HttpsError("failed-precondition",
-          "Search failed. This query requires a composite index in Firestore. " +
-                "Please check the Firebase console logs for a link to create it.",
+      throw new HttpsError(
+        "failed-precondition",
+        "Search failed. This query may require a Firestore composite index. " +
+          "Check the Firebase console logs for a link to create it."
       );
     }
-    throw new functions.https.HttpsError("internal", "Search failed to execute.");
+
+    throw new HttpsError("internal", "Search failed to execute.");
   }
 });

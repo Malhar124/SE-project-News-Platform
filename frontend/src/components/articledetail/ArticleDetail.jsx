@@ -56,7 +56,7 @@ const ArticleDetail = () => {
 
   // 🧠 Fix image and content field names to match your Firestore schema
   const imageUrl = article.urlToImage || "/placeholder-news.jpg";
-  const content = article.full_clean_content || article.description || "No content available.";
+  const content = article.content || article.description || "No content available.";
 
   const handleClick = () => {
     navigate(`/article/summary/${article.id}`, { state: article });

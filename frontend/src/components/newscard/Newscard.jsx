@@ -19,7 +19,7 @@ const Newscard = ({ article }) => {
     <div className="news-card" onClick={handleClick}>
       <div className="news-image-wrapper">
         <img
-          src={article.urlToImage || "https://via.placeholder.com/400x200?text=No+Image"}
+          src={article.urlToImage || "https://placehold.co/300x200?text=No+Image"}
           alt={article.title}
           className="news-image"
         />

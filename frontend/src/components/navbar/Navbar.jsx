@@ -213,7 +213,7 @@ const Navbar = () => {
           <Link to="/sports" onClick={() => { setMenu("sports"); setSidebarOpen(false); }}>Sports</Link>
           <Link to="/entertainment" onClick={() => { setMenu("entertainment"); setSidebarOpen(false); }}>Entertainment</Link>
           <Link to="/politics" onClick={() => { setMenu("politics"); setSidebarOpen(false); }}>Politics</Link>
-          <Link to="/tech" onClick={() => { setMenu("technology"); setSidebarOpen(false); }}>Technology</Link>
+          <Link to="/technology" onClick={() => { setMenu("technology"); setSidebarOpen(false); }}>Technology</Link>
         </ul>
       </div>
 

@@ -16,7 +16,7 @@ const Newspreviewcard = ({ article }) => {
   return (
     <div className="news-preview-card" onClick={handleClick}>
       <img
-        src={article.urlToImage || "https://via.placeholder.com/400x200?text=No+Image"}
+        src={article.urlToImage || "https://placehold.co/300x200?text=No+Image"}
         alt={article.title}
         className="preview-image"
       />

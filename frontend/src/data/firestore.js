@@ -1,5 +1,3 @@
-// src/data/firestore.js
-
 import { db } from "../firebase";
 import {
   collection,
@@ -14,24 +12,23 @@ import {
 
 /**
  * Fetch articles from Firestore
- * @param {string|null} category - optional category name (e.g. "tech", "sports")
- * @param {number} max - maximum number of articles to return
+ * Includes automatic fallback if index is missing.
  */
 export async function getArticles(category = null, max = 20) {
   try {
     const articlesRef = collection(db, "articles");
-
     let q;
+
     if (category) {
-      // 🔥 Filter by category and sort by date (if available)
+      // ✅ Primary query (might require index if combined with multiple filters)
       q = query(
         articlesRef,
         where("category", "==", category.toLowerCase()),
-        where("processing_status", "==", "completed"),
         orderBy("publishedAt", "desc"),
         limit(max)
       );
     } else {
+      // ✅ Home page query — may require a simple 2-field index
       q = query(
         articlesRef,
         where("processing_status", "==", "completed"),
@@ -46,6 +43,31 @@ export async function getArticles(category = null, max = 20) {
       ...doc.data(),
     }));
   } catch (err) {
+    // ⚠️ Handle index-missing fallback gracefully
+    if (err.code === "failed-precondition") {
+      console.warn(
+        "⚠️ Firestore index missing — falling back to simpler query."
+      );
+
+      // 🪄 Fallback: only order by date, ignore filters
+      try {
+        const fallbackRef = collection(db, "articles");
+        const fallbackQuery = query(
+          fallbackRef,
+          orderBy("publishedAt", "desc"),
+          limit(10)
+        );
+        const fallbackSnapshot = await getDocs(fallbackQuery);
+        return fallbackSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+      } catch (fallbackErr) {
+        console.error("❌ Fallback query also failed:", fallbackErr);
+        return [];
+      }
+    }
+
     console.error("Error fetching articles:", err);
     return [];
   }
@@ -53,7 +75,6 @@ export async function getArticles(category = null, max = 20) {
 
 /**
  * Fetch a single article by document ID
- * @param {string} id - Firestore document ID
  */
 export async function getArticleById(id) {
   try {
