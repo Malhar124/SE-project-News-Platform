@@ -237,3 +237,43 @@ opacity: 0;
 .navprofiledropdown li:hover{
     color: black;
 }
+
+
+/* ADD THE CSS FOR SEARCH DROPDOWN */
+.search-dropdown {
+  position: absolute;
+  top: 40px;
+  width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  border-radius: 6px;
+  z-index: 1000;
+}
+
+.search-result {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.search-result:hover {
+  background: #f1f1f1;
+}
+
+.search-result-img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.search-result-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}

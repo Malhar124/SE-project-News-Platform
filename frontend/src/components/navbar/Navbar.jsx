@@ -5,8 +5,12 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { StoreContext } from "../../context/Storecontext";
 import { auth } from "../../firebase"; // ✅ Import Firebase Auth
 import { onAuthStateChanged, signOut } from "firebase/auth";
-
+import {searchArticles} from "../../data/search"
 const Navbar = () => {
+  // SEARCH USESTATE
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+
   const [menu, setMenu] = useState("home");
   const [navSearch, setNavSearch] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -14,6 +18,26 @@ const Navbar = () => {
   const { setshowlogin, token, settoken } = useContext(StoreContext);
   const navigate = useNavigate();
   const location = useLocation();
+
+// SEARCH USEEFFECT
+  useEffect(() => {
+    const fetchResults = async () => {
+      if (!searchQuery) {
+        setSearchResults([]);
+        return;
+      }
+      try {
+        const results = await searchArticles(searchQuery);
+        setSearchResults(results);
+      } catch (err) {
+        console.error("Search error:", err);
+        setSearchResults([]);
+      }
+    };
+    fetchResults();
+  }, [searchQuery]);
+
+
 
   // ✅ Track Firebase Auth state
   useEffect(() => {
@@ -106,13 +130,16 @@ const Navbar = () => {
 
       {/* ---- Right Icons ---- */}
       <div className="navright">
-        {/* Search Input */}
+
+        {/* JSX FOR SEARCH INPUT */}
         <div className="navsearch">
           <input
             type="text"
             name="search"
             className={`inputsearch ${navSearch ? "show" : ""}`}
             placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
           <img
             onClick={() => setNavSearch((prev) => !prev)}
@@ -120,6 +147,25 @@ const Navbar = () => {
             alt=""
             className="search_icon"
           />
+
+          {searchResults.length > 0 && (
+            <div className="search-dropdown">
+              {searchResults.map((article) => (
+                <div
+                  key={article.id}
+                  className="search-result"
+                  onClick={() => navigate(`/article/${article.id}`, { state: article })}
+                >
+                  <img
+                    src={article.urlToImage || "https://via.placeholder.com/50"}
+                    alt="thumbnail"
+                    className="search-result-img"
+                  />
+                  <p className="search-result-title">{article.title}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ---- Login/Profile Section ---- */}

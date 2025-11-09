@@ -28,7 +28,7 @@ export async function getArticles(category = null, max = 20) {
         articlesRef,
         where("category", "==", category.toLowerCase()),
         where("processing_status", "==", "completed"),
-        orderBy("pubishedAt", "desc"),
+        orderBy("publishedAt", "desc"),
         limit(max)
       );
     } else {
