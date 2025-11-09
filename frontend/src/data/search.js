@@ -11,4 +11,4 @@ export async function searchArticles(query) {
   const fn = httpsCallable(functions, "semanticSearch");
   const res = await fn({ query });
   return res.data.articles;
-}t
+}

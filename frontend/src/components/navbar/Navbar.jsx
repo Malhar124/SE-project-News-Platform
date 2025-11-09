@@ -11,13 +11,13 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
 
-  if(!auth.currentUser){
-    console.log("User not signed in. Cannot search.");
-  }
-  else{
-    console.log(auth.currentUser)
-    console.log("User signed in. Ready to search.");
-  }
+  // if(!auth.currentUser){
+  //   console.log("User not signed in. Cannot search.");
+  // }
+  // else{
+  //   console.log(auth.currentUser)
+  //   console.log("User signed in. Ready to search.");
+  // }
   const [menu, setMenu] = useState("home");
   const [navSearch, setNavSearch] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
