@@ -10,7 +10,5 @@ export async function searchArticles(query) {
   }
   const fn = httpsCallable(functions, "semanticSearch");
   const res = await fn({ query });
-  
-  console.log("Firebase response:", res); 
   return res.data.articles;
-}
+}t
