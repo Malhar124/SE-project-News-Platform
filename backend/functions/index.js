@@ -20,10 +20,13 @@ exports.removeBookmark = profileFunctions.removeBookmark;
 const {semanticSearch} = require("./search");
 exports.semanticSearch = semanticSearch;
 
-
-
 // --- Import and Export Text-to-Speech Function ---
 const {generateTTS} = require("./tts");
 exports.generateTTS = generateTTS;
+
+// --- Import and Export Content Cleaning + Search Functions ---
+const contentFunctions = require("./content");
+exports.syncContent = contentFunctions.syncContent;
+exports.searchArticles = contentFunctions.searchArticles;
 
 console.log("✅ All Firebase Cloud Functions loaded and exported successfully.");

@@ -1,141 +1,256 @@
 /**
  * content.js
- * Handles cleaning full_clean_content → content,
- * generating keywords, and Firestore keyword-based search.
+ *
+ * Cloud Function (v2): syncContent
+ * - Cleans `full_clean_content` HTML/Markdown into `content`
+ * - Generates a small `keywords` array for keyword search
+ *
+ * Usage: deploy with Node 22 + firebase-functions v2
  */
 
-const functions = require("firebase-functions");
+const { onDocumentWritten } = require("firebase-functions/v2/firestore");
+const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
-if (!admin.apps.length) admin.initializeApp();
 
-const db = admin.firestore();
-
-// --- Helper: Markdown cleaner ---
-function cleanMarkdownToText(md) {
-  if (!md) return "";
-  let txt = md.replace(/```[\s\S]*?```/g, " ");
-  txt = txt.replace(/`[^`]*`/g, " ");
-  txt = txt.replace(/!$begin:math:display$.*?$end:math:display$$begin:math:text$.*?$end:math:text$/g, " ");
-  txt = txt.replace(/$begin:math:display$([^$end:math:display$]+)\]$begin:math:text$([^)]+)$end:math:text$/g, "$1");
-  txt = txt.replace(/^#+\s*/gm, " ");
-  txt = txt.replace(/<\/?[^>]+(>|$)/g, " ");
-  txt = txt.replace(/\s+/g, " ").trim();
-  return txt;
+// initialize admin if necessary
+if (!admin.apps.length) {
+  admin.initializeApp();
 }
 
-// --- Helper: Keyword extractor ---
-function extractKeywords(text, topN = 15) {
-  if (!text) return [];
+/**
+ * Clean raw article HTML/Markdown text.
+ *
+ * Steps:
+ *  - remove <script>/<style> blocks and HTML comments
+ *  - remove common cookie / consent / privacy boilerplate by heuristics
+ *  - strip HTML tags, decode common entities (&nbsp;, &amp;, etc.)
+ *  - remove Markdown images and replace Markdown links with link text
+ *  - remove raw URLs and mailto: links
+ *  - remove repeated navigation/menu blocks by detecting lines with many links or menu words
+ *  - remove excessive newlines/whitespace
+ *
+ * @param {string} raw Raw article HTML/Markdown string
+ * @return {string} cleaned, human-readable article content
+ */
+function cleanArticleText(raw) {
+  if (!raw || typeof raw !== "string") return "";
+
+  let s = raw;
+
+  // 1) remove script/style blocks and HTML comments
+  s = s.replace(/<script[\s\S]*?<\/script>/gi, " ");
+  s = s.replace(/<style[\s\S]*?<\/style>/gi, " ");
+  s = s.replace(/<!--[\s\S]*?-->/g, " ");
+
+  // 2) remove common cookie/consent blocks heuristically (large cookie/consent paragraphs)
+  //    If phrases appear, remove that paragraph/section
+  const consentPhrases = [
+    "manage your consent",
+    "manage your consent preferences",
+    "privacy policy",
+    "accept all",
+    "reject all",
+    "confirm my choices",
+    "cookies",
+    "opt-out",
+    "targeted advertising",
+    "powered by",
+    "your california privacy rights",
+    "cookie settings",
+  ];
+  for (const phrase of consentPhrases) {
+    const re = new RegExp(`[^\\n]*${phrase}[^\\n]*`, "gi");
+    s = s.replace(re, " ");
+  }
+
+  // 3) remove long nav/menu blocks (lines containing many links or repeated menu words)
+  //    heuristic: any line containing >3 occurrences of "href" or many '|' separators or many menu words
+  s = s
+    .split("\n")
+    .filter((line) => {
+      const hrefCount = (line.match(/href=|<a\s+/gi) || []).length;
+      const pipeCount = (line.match(/\|/g) || []).length;
+      const menuWords = (line.match(/\b(Home|News|Subscribe|Search|Sign in|Contact|About|More|Topics)\b/gi) || []).length;
+      // drop if looks like nav/menu
+      if (hrefCount > 3 || pipeCount > 4 || menuWords > 3) return false;
+      return true;
+    })
+    .join("\n");
+
+  // 4) Remove Markdown images and inline HTML <img>
+  s = s.replace(/!\[.*?\]\(.*?\)/g, " ");
+  s = s.replace(/<img[\s\S]*?>/gi, " ");
+
+  // 5) Replace Markdown links [text](url) with text only
+  s = s.replace(/\[([^\]]+)\]\((?:https?:\/\/[^\s)]+|mailto:[^\s)]+)\)/gi, "$1");
+
+  // 6) Remove mailto: and plain URLs
+  s = s.replace(/mailto:[^\s)]+/gi, " ");
+  s = s.replace(/https?:\/\/[^\s)]+/gi, " ");
+
+  // 7) Remove remaining HTML tags
+  s = s.replace(/<\/?[^>]+(>|$)/g, " ");
+
+  // 8) Decode common HTML entities
+  s = s.replace(/&nbsp;/gi, " ");
+  s = s.replace(/&amp;/gi, "&");
+  s = s.replace(/&quot;/gi, '"');
+  s = s.replace(/&apos;/gi, "'");
+  s = s.replace(/&ndash;|&mdash;/gi, "-");
+
+  // 9) Remove long copyright/legal blocks and boilerplate phrases
+  const boilerplate = [
+    "©",
+    "all rights reserved",
+    "read more",
+    "read our affiliate link policy",
+    "follow us",
+    "subscribe",
+    "view more",
+    "related",
+    "most read",
+    "advertisement",
+    "advertisements",
+    "adchoices",
+    "cookie policy",
+    "privacy choices",
+    "user agreement",
+  ];
+  for (const phrase of boilerplate) {
+    const re = new RegExp(`[^\\n]*${phrase}[^\\n]*`, "gi");
+    s = s.replace(re, " ");
+  }
+
+  // 10) Remove lines that are extremely short or that are pure UI fragments (e.g., "Read next", "Share")
+  s = s
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => {
+      if (!l) return false;
+      if (l.length < 20) {
+        // allow short lines that contain sentence punctuation
+        if (/[.!?]/.test(l)) return true;
+        return false;
+      }
+      // drop lines that are likely "share", "follow", "comments" etc
+      if (/^(share|follow|comments|comment|related|read next|prev|next|load more)$/i.test(l)) return false;
+      return true;
+    })
+    .join("\n");
+
+  // 11) Remove excessive repeated separators / dashes / equals used as section markers
+  s = s.replace(/={2,}/g, " ");
+  s = s.replace(/-{2,}/g, " ");
+
+  // 12) Remove leftover bullets/special characters
+  s = s.replace(/[•◦▪→←↑↓★†•●]/g, " ");
+
+  // 13) Collapse multiple spaces and newlines
+  s = s.replace(/\r\n|\r/g, "\n");
+  s = s.replace(/\n{3,}/g, "\n\n");
+  s = s.replace(/[ \t]{2,}/g, " ");
+  s = s.replace(/\s{3,}/g, " ");
+
+  // 14) Trim and ensure reasonable length
+  s = s.trim();
+
+  // 15) If resulting content is still extremely long with many repeated short lines (e.g., menu noise),
+  //     try a fallback: keep only the first 40 paragraphs/sentences that look like article text.
+  const lines = s.split("\n").map((l) => l.trim()).filter(Boolean);
+  // keep up to first 2000 words or 80 lines whichever comes earlier
+  const joined = lines.join("\n");
+  const words = joined.split(/\s+/);
+  if (words.length > 4000) {
+    s = words.slice(0, 2000).join(" ") + "\n\n[...truncated]";
+  }
+
+  return s;
+}
+
+/**
+ * Generate simple keywords for Firestore search.
+ *
+ * @param {string} text cleaned article text
+ * @return {string[]} array of unique keywords (lowercase), up to 30 items
+ */
+function generateKeywords(text) {
+  if (!text || typeof text !== "string") return [];
+
+  // Lowercase, remove punctuation, split into words
+  const cleaned = text.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
+  const words = cleaned.split(/\s+/).filter(Boolean);
+
+  // Filter stopwords and small words, and take top-occurring words
   const stop = new Set([
-    "the","and","a","an","in","on","of","for","to","is","are","was","were",
-    "that","this","with","as","by","be","from","at","or","we","our","will",
-    "has","have","had","not","but","they","their","its","which","you","your",
-    "it","into","than","then","about"
+    "about", "which", "there", "their", "these", "would", "could", "should",
+    "however", "between", "through", "during", "before", "after", "within",
+    "while", "where", "when", "what", "your", "you're", "youve", "they",
+    "have", "has", "had", "this", "that", "with", "from", "were", "will", "also",
+    "theyre", "what's", "it's", "its", "more", "than", "like", "just", "been",
   ]);
 
-  const words = text
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter(w => w.length > 2 && !stop.has(w));
+  const freq = Object.create(null);
+  for (const w of words) {
+    if (w.length <= 4) continue; // skip short words
+    if (stop.has(w)) continue;
+    freq[w] = (freq[w] || 0) + 1;
+  }
 
-  const freq = {};
-  for (const w of words) freq[w] = (freq[w] || 0) + 1;
-  return Object.keys(freq)
+  const keywords = Object.keys(freq)
     .sort((a, b) => freq[b] - freq[a])
-    .slice(0, topN);
+    .slice(0, 30);
+
+  return keywords;
 }
 
 /**
- * 🔥 Firestore Trigger: Automatically populate `content` and `keywords`
- *    whenever an article is created or updated.
+ * Firestore v2 onDocumentWritten trigger: cleans full_clean_content and updates content + keywords.
  */
-exports.syncContent = functions.firestore
-  .document("articles/{docId}")
-  .onWrite(async (change, context) => {
-    const after = change.after.exists ? change.after.data() : null;
-    if (!after) return null;
-
-    const ref = change.after.ref;
-    const full = after.full_clean_content || "";
-    const content = after.content || "";
-
-    // Only regenerate if content is missing/short or full_clean_content changed
-    const shouldUpdate =
-      !content || content.length < 100 ||
-      (change.before.exists &&
-        change.before.data().full_clean_content !== full);
-
-    if (!shouldUpdate && after.keywords) return null;
-
-    const updates = {};
-    if (full && shouldUpdate) {
-      const cleaned = cleanMarkdownToText(full);
-      updates.content = cleaned.slice(0, 50000);
-    }
-
-    const textForKeywords = updates.content || content || full;
-    const keywords = extractKeywords(textForKeywords, 20);
-    if (keywords.length) updates.keywords = keywords;
-
-    if (after.processing_status !== "failed")
-      updates.processing_status = "completed";
-
-    if (Object.keys(updates).length > 0) {
-      await ref.update(updates);
-      console.log(`✅ Updated article ${context.params.docId}`);
-    }
-    return null;
-  });
-
-/**
- * 🔎 Callable Search: Query articles by keyword or fallback text search
- */
-exports.searchArticles = functions.https.onCall(async (data, context) => {
-  const rawQuery = (data && data.query) ? String(data.query).trim() : "";
-  const limit = Math.min(Number(data.limit) || 20, 100);
-  if (!rawQuery) return { success: false, message: "Empty query" };
-
-  const tokens = rawQuery
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter(t => t.length > 2);
-
+exports.syncContent = onDocumentWritten("articles/{docId}", async (event) => {
   try {
-    const ref = db.collection("articles");
-    const snap = await ref
-      .where("processing_status", "==", "completed")
-      .where("keywords", "array-contains-any", tokens.slice(0, 10))
-      .orderBy("publishedAt", "desc")
-      .limit(limit)
-      .get();
-
-    if (!snap.empty) {
-      return {
-        success: true,
-        results: snap.docs.map(d => ({ id: d.id, ...d.data() })),
-      };
+    const afterSnap = event.data?.after;
+    if (!afterSnap || !afterSnap.exists) {
+      // document deleted or not present
+      return;
     }
 
-    // Fallback: manual substring filter
-    const fallbackSnap = await ref
-      .where("processing_status", "==", "completed")
-      .orderBy("publishedAt", "desc")
-      .limit(200)
-      .get();
+    const after = afterSnap.data();
+    if (!after || typeof after.full_clean_content !== "string") {
+      // nothing to do
+      return;
+    }
 
-    const qLower = rawQuery.toLowerCase();
-    const results = fallbackSnap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .filter(a =>
-        ((a.title || "") + " " + (a.content || "")).toLowerCase().includes(qLower)
-      )
-      .slice(0, limit);
+    const raw = after.full_clean_content;
+    const cleaned = cleanArticleText(raw);
 
-    return { success: true, results };
+    // If cleaned is too short, attempt a lighter-clean fallback (strip tags only)
+    let finalText = cleaned;
+    if (finalText.length < 100) {
+      // lighter fallback: strip tags and urls only
+      finalText = raw
+        .replace(/<script[\s\S]*?<\/script>/gi, " ")
+        .replace(/<style[\s\S]*?<\/style>/gi, " ")
+        .replace(/<\/?[^>]+(>|$)/g, " ")
+        .replace(/https?:\/\/[^\s)]+/g, " ")
+        .replace(/!\[.*?\]\(.*?\)/g, " ")
+        .replace(/\[([^\]]+)\]\((?:https?:\/\/[^\s)]+|mailto:[^\s)]+)\)/gi, "$1")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+    }
+
+    // Generate keywords from the final cleaned text
+    const keywords = generateKeywords(finalText);
+
+    // Update document (use serverTimestamp for updatedAt)
+    await afterSnap.ref.update({
+      content: finalText,
+      keywords,
+      processing_status: "completed",
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    logger.info(`✅ Cleaned article ${event.params.docId} — length ${finalText.length} — keywords ${keywords.length}`);
   } catch (err) {
-    console.error("❌ searchArticles error:", err);
-    return { success: false, message: err.message };
+    logger.error("❌ syncContent error:", err);
   }
 });
