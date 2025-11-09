@@ -36,8 +36,8 @@ function generateKeywordsFromQuery(queryText) {
  * Callable Cloud Function: semanticSearch
  * Performs Firestore keyword-based search using array-contains-any.
  */
-exports.semanticSearch = onCall(async (request) => {
-  const { data, context } = request;
+exports.semanticSearch = onCall(async (data, context) => {
+  // const { data, context } = request;
 
   // 1️⃣ Verify authentication
   const uid = verifyAuth(context);
