@@ -11,6 +11,13 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
 
+  if(!auth.currentUser){
+    console.log("User not signed in. Cannot search.");
+  }
+  else{
+    console.log(auth.currentUser)
+    console.log("User signed in. Ready to search.");
+  }
   const [menu, setMenu] = useState("home");
   const [navSearch, setNavSearch] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -21,22 +28,29 @@ const Navbar = () => {
 
 // SEARCH USEEFFECT
   useEffect(() => {
-    const fetchResults = async () => {
-      if (!searchQuery) {
-        setSearchResults([]);
-        return;
-      }
-      try {
-        const results = await searchArticles(searchQuery);
-        setSearchResults(results);
-      } catch (err) {
-        console.error("Search error:", err);
-        setSearchResults([]);
-      }
-    };
-    fetchResults();
-  }, [searchQuery]);
+  const fetchResults = async () => {
+    if (!searchQuery) {
+      setSearchResults([]);
+      return;
+    }
 
+    if (!auth.currentUser) {
+      setSearchResults([]);
+      console.warn("User not signed in. Cannot search.");
+      return;
+    }
+
+    try {
+      const results = await searchArticles(searchQuery);
+      setSearchResults(results);
+    } catch (err) {
+      console.error("Search error:", err);
+      setSearchResults([]);
+    }
+  };
+
+  fetchResults();
+}, [searchQuery]);
 
 
   // ✅ Track Firebase Auth state
@@ -139,7 +153,7 @@ const Navbar = () => {
             className={`inputsearch ${navSearch ? "show" : ""}`}
             placeholder="Search..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)} 
           />
           <img
             onClick={() => setNavSearch((prev) => !prev)}

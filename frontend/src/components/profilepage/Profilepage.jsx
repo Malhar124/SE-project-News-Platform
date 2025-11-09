@@ -30,7 +30,12 @@ export default function ProfilePage() {
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const userId = localStorage.getItem("userId") || "guest";
+        // const userId = localStorage.getItem("userId") || "guest";
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+          console.error("User not logged in");
+          return;
+        }
         const docRef = doc(db, "users", userId);
         const docSnap = await getDoc(docRef);
 
